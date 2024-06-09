@@ -1,17 +1,22 @@
 package ChooseYourMusic;
 
+import javax.sound.sampled.Clip;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.concurrent.CountDownLatch;
 
 public class InputSelfDefined extends JFrame{
 
+    private final CountDownLatch latch;
     public boolean selfAudioPicked = false;
+    String absolutePath;
 
-    InputSelfDefined(){
+    InputSelfDefined(CountDownLatch latch){
+        this.latch = latch;
         //set up and center JFrame
         setTitle("Pick Your Own Music");
         setSize(400,200);
@@ -37,10 +42,11 @@ public class InputSelfDefined extends JFrame{
         mainPanel.add(descriptions);
         mainPanel.add(inputPanel);
         mainPanel.add(submitPanel);
-        mainPanel.add(goBack());
+        //mainPanel.add(goBack());
 
         add(mainPanel);
         setVisible(true);
+        latch.countDown();
     }
 
     /**
@@ -63,13 +69,19 @@ public class InputSelfDefined extends JFrame{
                 if(returnVal == JFileChooser.APPROVE_OPTION){
                     //get file and absolute path
                     File file = fileChooser.getSelectedFile();
-                    String absolutePath = file.getAbsolutePath();
+                    absolutePath = file.getAbsolutePath();
                     //set absolute path and inform the user
                     AudioChoices.SELF_INPUT.setAbsolutePath(absolutePath);
                     JOptionPane.showMessageDialog(null, "The absolute path of Self Input has been updated to: " + AudioChoices.SELF_INPUT.getAbsolutePath() + " \n Game will start now");
                     dispose();
                     selfAudioPicked = true;
                 }
+
+                //play the audio
+                AudioPlayer pa = new AudioPlayer(absolutePath, true, false);
+                Clip clip = pa.getClip();
+                clip.start();
+                latch.countDown();
             }
         });
 
@@ -98,17 +110,4 @@ public class InputSelfDefined extends JFrame{
         return descriptions;
     }
 
-    private JPanel goBack(){
-        JButton goBackButton = new JButton("Go Back");
-        goBackButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // user does not wish to pick a song
-                dispose();
-            }
-        });
-        JPanel goBackPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-        goBackPanel.add(goBackButton);
-        return goBackPanel;
-    }
 }

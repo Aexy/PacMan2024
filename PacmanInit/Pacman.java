@@ -4,13 +4,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
-public class Pacman {
+class Pacman {
 
-    public int x;
+    private int x;
     private int y;
     private int dx;
     private int dy;
-    private final int PIXEL_SIZE = 15;
+    private boolean started;
+
     private Image down;
     private Image up;
     private Image left;
@@ -19,11 +20,13 @@ public class Pacman {
     private Image curr;
 
     public Pacman(int x, int y) {
-        this.x = x;
-        this.y = y;
+        this.x = x*Control.GRID_SIZE;
+        this.y = y*Control.GRID_SIZE;
         this.dx = 0;
         this.dy = 0;
+        started = false;
         initImg();
+        curr = begin;
     }
 
     private void initImg() {
@@ -35,36 +38,48 @@ public class Pacman {
 
     }
 
+    /**
+     * Gets the Pressed key and updates the image that should be presented accordingly
+     * @param e
+     */
     public void keyPressed(KeyEvent e) {
         int key = e.getKeyCode();
-
-        if (key == KeyEvent.VK_LEFT) {
-            dx = -PIXEL_SIZE;
-            dy = 0;
-            curr = left;
+        if(!started){
+            started = true;
         }
-
-        if (key == KeyEvent.VK_RIGHT) {
-            dx = PIXEL_SIZE;
-            dy = 0;
-            curr = right;
-        }
-
-        if (key == KeyEvent.VK_UP) {
-            dx = 0;
-            dy = -PIXEL_SIZE;
-            curr = up;
-        }
-
-        if (key == KeyEvent.VK_DOWN) {
-            dx = 0;
-            dy = PIXEL_SIZE;
-            curr = down;
+        switch (key) {
+            case KeyEvent.VK_LEFT:
+                dx = -Control.GRID_SIZE;
+                dy = 0;
+                curr = left;
+                break;
+            case KeyEvent.VK_RIGHT:
+                dx = Control.GRID_SIZE;
+                dy = 0;
+                curr = right;
+                break;
+            case KeyEvent.VK_UP:
+                dx = 0;
+                dy = -Control.GRID_SIZE;
+                curr = up;
+                break;
+            case KeyEvent.VK_DOWN:
+                dx = 0;
+                dy = Control.GRID_SIZE;
+                curr = down;
+                break;
         }
     }
 
 
+    /**
+     * Moves the pacman
+     */
     public void move() {
+        if (!started) {
+            return;
+        }
+
         int newX = x + dx;
         int newY = y + dy;
 
@@ -74,19 +89,33 @@ public class Pacman {
         }
     }
 
+    /**
+     * Checks the validity of the position in the map
+     * @param newX the new X position
+     * @param newY the new Y position
+     * @return (x,y) is a valid location on the map
+     */
     public boolean validMove(int newX, int newY){
-        return newX >= 0
-                && newX < Control.GRID_SIZE * PIXEL_SIZE
-                && newY >= 0
-                && newY < Control.GRID_SIZE * PIXEL_SIZE
-                && !Control.map[newY / PIXEL_SIZE][newX / PIXEL_SIZE];
+        int posX = newX/Control.GRID_SIZE;
+        int posY = newY/Control.GRID_SIZE;
+
+        return posX > 0
+                && posX < (Control.map[0].length)
+                && posY > 0
+                && posY < (Control.map.length)
+                && Control.map[posY][posX] != 0;
     }
 
+    /**
+     * Draw the pacman at (x,y)
+     * @param g Graphics
+     */
     public void draw(Graphics g) {
-        if(curr != null) {
-            g.drawImage(curr,x,y,PIXEL_SIZE,PIXEL_SIZE, null);
-        }
-        g.drawImage(begin,x,y,PIXEL_SIZE,PIXEL_SIZE,null);
+        g.drawImage(curr, x, y, Control.GRID_SIZE,Control.GRID_SIZE, null);
+    }
+
+    public void start() {
+        started = true;
     }
 
     public int getY() {
@@ -95,5 +124,9 @@ public class Pacman {
 
     public int getX() {
         return x;
+    }
+
+    public boolean isStarted(){
+        return started;
     }
 }
